@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:buzz/app/app.dart';
 import 'package:buzz/home/home.dart';
-import 'package:buzz/login/login.dart';
+import 'package:buzz/authentication/login/login.dart';
 
 List<Page<dynamic>> onGenerateAppViewPages(
   AppStatus state,
