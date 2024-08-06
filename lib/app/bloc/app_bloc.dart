@@ -11,9 +11,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({required AuthenticationRepository authenticationRepository})
       : _authenticationRepository = authenticationRepository,
         super(
-          authenticationRepository.currentUser.isNotEmpty
+          authenticationRepository.currentUser.email == 'lastresort@lare.de'
               ? AppState.authenticated(authenticationRepository.currentUser)
-              : const AppState.unauthenticated(),
+              : authenticationRepository.currentUser.isNotEmpty
+                  ? AppState.player(authenticationRepository.currentUser)
+                  : const AppState.unauthenticated(),
         ) {
     on<_AppUserChanged>(_onUserChanged);
     on<AppLogoutRequested>(_onLogoutRequested);
@@ -27,8 +29,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   void _onUserChanged(_AppUserChanged event, Emitter<AppState> emit) {
     emit(
-      event.user.isNotEmpty
+      event.user.email == 'lastrestort@lare.de'
           ? AppState.authenticated(event.user)
+          :
+      event.user.isNotEmpty
+          ? AppState.player(event.user)
           : const AppState.unauthenticated(),
     );
   }
