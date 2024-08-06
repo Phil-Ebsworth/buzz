@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:buzz/authentication/login/login.dart';
@@ -29,7 +30,7 @@ class LoginForm extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/bloc_logo_small.png',
+                'assets/buzz_logo.png',
                 height: 120,
               ),
               const SizedBox(height: 16),
@@ -38,10 +39,62 @@ class LoginForm extends StatelessWidget {
               _PasswordInput(),
               const SizedBox(height: 8),
               _LoginButton(),
-              const SizedBox(height: 8),
-              _GoogleLoginButton(),
-              const SizedBox(height: 4),
-              _SignUpButton(),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('teams').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final teams = snapshot.data!.docs;
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: teams.length,
+                      itemBuilder: (context, index) {
+                        final team = teams[index];
+                        return Column(
+                          children: [
+                            SizedBox(height: 16.0),
+                            ExpansionTile(
+                              title: Text(team['name']),
+                              children: [
+                              // Add your expandable content here
+                              Form(
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Enter your Name',
+                                      ),
+                                      validator: (value) {
+                                        if (value?.isEmpty ?? true) {
+                                          return 'Please enter a name';
+                                        }
+                                        return null;
+                                      },
+                                      onFieldSubmitted: (name) {
+                                        final teamName = team['name'];
+                                        FirebaseFirestore.instance.collection('players').add({
+                                          'name': name,
+                                          'teamName': teamName,
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              )
+                              ],
+                            ),
+                          ],
+                        );
+                          
+                        
+                      },
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              )
             ],
           ),
         ),
