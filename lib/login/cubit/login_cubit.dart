@@ -31,6 +31,10 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
+  void teamNameChanged(String value) {
+    emit(state.copyWith(teamName: value));
+  }
+
   Future<void> logInWithCredentials() async {
     if (!state.isValid) return;
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
@@ -52,12 +56,16 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-  Future<void> logInWithGoogle() async {
+Future<void> signUpFormSubmitted() async {
+    if (!state.isValid) return;
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
-      await _authenticationRepository.logInWithGoogle();
+      await _authenticationRepository.signUp(
+        email: state.email.value,
+        password: state.password.value,
+      );
       emit(state.copyWith(status: FormzSubmissionStatus.success));
-    } on LogInWithGoogleFailure catch (e) {
+    } on SignUpWithEmailAndPasswordFailure catch (e) {
       emit(
         state.copyWith(
           errorMessage: e.message,
@@ -69,3 +77,6 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 }
+
+
+
