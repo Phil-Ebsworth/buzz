@@ -9,7 +9,14 @@ sealed class GameEvent extends Equatable {
 
 class TeamSelectionStart extends GameEvent {}
 
-class GameStarted extends GameEvent {}
+class GameStarted extends GameEvent {
+  final int round;
+
+  const GameStarted(this.round);
+
+  @override
+  List<Object> get props => [round];
+}
 
 class GameEnded extends GameEvent {}
 
@@ -22,7 +29,14 @@ class NextRound extends GameEvent {
   List<Object> get props => [round];
 }
 
-class NextQuestion extends GameEvent {}
+class RoundBack extends GameEvent {
+  final int round;
+
+  const RoundBack(this.round);
+
+  @override
+  List<Object> get props => [round];
+}
 
 class NextTeam extends GameEvent {}
 

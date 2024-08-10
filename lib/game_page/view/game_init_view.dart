@@ -1,5 +1,7 @@
+import 'package:buzz/game_page/bloc/game_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GameInitPage extends StatefulWidget {
   @override
@@ -18,15 +20,10 @@ class _GameInitPageState extends State<GameInitPage> {
 
   void _submitTeam() {
     if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      // Add the team to Firestore collection named 'teams'
       FirebaseFirestore.instance.collection('teams').add({
         'name': _teamNameController.text,
       }).then((value) {
-        // Clear the form field after successful submission
         _teamNameController.clear();
-      }).catchError((error) {
-        // Handle any errors that occur during submission
-        print('Error submitting team: $error');
       });
     }
   }
@@ -42,8 +39,8 @@ class _GameInitPageState extends State<GameInitPage> {
             children: [
               TextFormField(
                 controller: _teamNameController,
-                decoration: InputDecoration(
-                  labelText: 'Team Name',
+                decoration: const InputDecoration(
+                  labelText: 'Add new Team',
                 ),
                 validator: (value) {
                   if (value?.isEmpty ?? true) {
@@ -70,33 +67,30 @@ class _GameInitPageState extends State<GameInitPage> {
                           final teamName = team['name'];
                           return ListTile(
                             title: Text(teamName),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                team.reference.delete();
+                              },
+                            ),
                           );
                         },
                       ),
                     );
-                  } else if (snapshot.hasError) {
-                    return Text('Error loading teams');
                   } else {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   }
                 },
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Delete all teams from Firestore collection named 'teams'
-                  FirebaseFirestore.instance
-                      .collection('teams')
-                      .get()
-                      .then((snapshot) {
-                    for (var doc in snapshot.docs) {
-                      doc.reference.delete();
-                    }
-                  }).catchError((error) {
-                    // Handle any errors that occur during deletion
-                    print('Error deleting teams: $error');
-                  });
+              BlocBuilder<GameBloc, GameState>(
+                builder: (context, state) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      context.read<GameBloc>().add(const GameStarted(1));
+                    },
+                    child: const Text('Start Game'),
+                  );
                 },
-                child: Text('Delete All Teams'),
               ),
             ],
           ),

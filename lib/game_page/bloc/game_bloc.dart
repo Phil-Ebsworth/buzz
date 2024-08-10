@@ -10,17 +10,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       emit(TeamInit());
     });
     on<GameStarted>((event, emit) {
-      emit(GameRunning(1));
+      emit(GameRunning(event.round));
     });
 
     on<NextRound>((event, emit) {
       emit(GameRunning(event.round + 1));
     });
 
+    on<RoundBack>((event, emit) {
+      emit(GameRunning(event.round - 1));
+    });
+
     on<GameEnded>((event, emit) {
       emit(GameOver());
     });
 
-    on<NextQuestion>((event, emit) {});
+    on<GameReset>((event, emit) {
+      emit(GameInitial());
+    });
   }
 }

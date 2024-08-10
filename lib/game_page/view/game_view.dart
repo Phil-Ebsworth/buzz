@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:buzz/game_page/bloc/game_bloc.dart';
 import 'package:buzz/game_page/view/game_init_view.dart';
 import 'package:buzz/game_page/view/game_overview.dart';
@@ -17,7 +15,7 @@ class GameView extends StatelessWidget {
         if (state is TeamInit) {
           return GameInitPage();
         } else if (state is GameRunning) {
-          return const GameRunningPage();
+          return GameRunningPage();
         } else if (state is GameOver) {
           return const GameOverView();
         } else {
