@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// {@template sign_up_with_email_and_password_failure}
 /// Thrown during the sign up process if a failure occurs.
@@ -271,6 +272,18 @@ class AuthenticationRepository {
       throw LogOutFailure();
     }
   }
+
+  Future<void> deleteAccount() async {
+    try {
+      final user = _firebaseAuth.currentUser!;
+      await Future.wait([
+        _firebaseAuth.currentUser!.delete(),
+      ]);
+      _deleteTeam(user.email);
+    } catch (_) {
+      throw LogOutFailure();
+    }
+  }
 }
 
 extension on firebase_auth.User {
@@ -278,4 +291,16 @@ extension on firebase_auth.User {
   User get toUser {
     return User(id: uid, email: email, name: displayName, photo: photoURL);
   }
+}
+
+Future<void> _deleteTeam(email) async {
+  await FirebaseFirestore.instance
+      .collection('players')
+      .where('email', isEqualTo: email)
+      .get()
+      .then((snapshot) {
+    for (var doc in snapshot.docs) {
+      doc.reference.delete();
+    }
+  });
 }

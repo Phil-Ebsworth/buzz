@@ -1,4 +1,3 @@
-import 'package:buzz/login/cubit/login_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:buzz/login/login.dart';
@@ -31,9 +30,10 @@ class LoginForm extends StatelessWidget {
                 'assets/buzz_logo.png',
                 height: 120,
               ),
-              AdminTile(),
+              const SizedBox(height: 20),
+              const LoginTile.admin(),
               const SizedBox(height: 8),
-              TeamBuilder()
+              const TeamBuilder()
             ],
           ),
         ),

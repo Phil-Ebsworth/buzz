@@ -5,7 +5,9 @@ sealed class AppEvent {
 }
 
 final class AppLogoutRequested extends AppEvent {
-  const AppLogoutRequested();
+  const AppLogoutRequested(this.user);
+
+  final User user;
 }
 
 final class _AppUserChanged extends AppEvent {

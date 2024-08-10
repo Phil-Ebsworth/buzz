@@ -3,31 +3,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:formz/formz.dart';
 
 class NameInput extends StatelessWidget {
+  const NameInput({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoginCubit, LoginState>(
       buildWhen: (previous, current) => previous.email != current.email,
       builder: (context, state) {
         return TextField(
-          key: const Key('loginForm_emailInput_textField'),
-          onChanged: (email) => context.read<LoginCubit>().emailChanged('$email@LaRe.de'),
-          keyboardType: TextInputType.name,
-          decoration: InputDecoration(
-            labelText: 'Name',
-            helperText: 'Pleas enter your name',
-            errorText:
-                state.email.displayError != null ? 'please enter a Name' : null,
-          ),
-        );
+            key: const Key('loginForm_emailInput_textField'),
+            onChanged: (name) {
+              context.read<LoginCubit>().nameChanged(name.toLowerCase());
+              context
+                  .read<LoginCubit>()
+                  .emailChanged('${name.toLowerCase()}@lare.de');
+            },
+            keyboardType: TextInputType.name,
+            decoration: InputDecoration(
+              labelText: 'Name',
+              helperText: 'Please enter your name',
+              errorText: state.email.displayError != null
+                  ? 'please enter your name'
+                  : null,
+            ),
+            onSubmitted: (value) {
+              context.read<LoginCubit>().signUpFormSubmitted();
+            });
       },
     );
   }
 }
 
 class PasswordInput extends StatelessWidget {
+  const PasswordInput({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoginCubit, LoginState>(
@@ -44,181 +55,110 @@ class PasswordInput extends StatelessWidget {
             errorText:
                 state.password.displayError != null ? 'invalid password' : null,
           ),
+          onSubmitted: (value) =>
+              context.read<LoginCubit>().logInWithCredentials(),
         );
       },
     );
   }
 }
 
-class LoginButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoginCubit, LoginState>(
-      builder: (context, state) {
-        return state.status.isInProgress
-            ? const CircularProgressIndicator()
-            : ElevatedButton(
-                key: const Key('loginForm_continue_raisedButton'),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  backgroundColor: const Color(0xFFFFD600),
-                ),
-                onPressed: state.isValid
-                    ? () => context.read<LoginCubit>().logInWithCredentials()
-                    : null,
-                child: const Text('LOGIN'),
-              );
-      },
-    );
-  }
-}
+class TeamBuilder extends StatelessWidget {
+  const TeamBuilder({super.key});
 
-class SignUpButton extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoginCubit, LoginState>(
-      builder: (context, state) {
-        return state.status.isInProgress
-            ? const CircularProgressIndicator()
-            : ElevatedButton(
-                key: const Key('signUpForm_continue_raisedButton'),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  backgroundColor: Colors.orangeAccent,
-                ),
-                onPressed: state.isValid
-                    ? () => context.read<LoginCubit>().signUpFormSubmitted()
-                    : null,
-                child: const Text('SIGN UP'),
-              );
-      },
-    );
-  }
-}
-
-class TeamBuilder extends StatelessWidget{
-  @override
-  Widget build(BuildContext){
+  Widget build(context) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('teams').snapshots(),
-      builder: (context, snapshot){
-        if(snapshot.hasData){
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
           final teams = snapshot.data!.docs;
           return ListView.builder(
             shrinkWrap: true,
             itemCount: teams.length,
-            itemBuilder: (context, index){
+            itemBuilder: (context, index) {
               final team = teams[index];
-              return TeamTile(teamName: team['name']);
+              return LoginTile.team(teamName: team['name']);
             },
           );
-        } else if(snapshot.hasError){
+        } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
       },
     );
   }
 }
 
-class TeamTile extends StatelessWidget{
+enum TileType { admin, team }
+
+class LoginTile extends StatelessWidget {
+  final String email;
+  final String password;
   final String teamName;
+  final TileType tileType;
 
-  const TeamTile({
+  const LoginTile.team({
+    super.key,
     required this.teamName,
-    });
+    this.email = '',
+    this.password = 'password',
+    this.tileType = TileType.team,
+  });
+
+  const LoginTile.admin({
+    super.key,
+    this.teamName = 'Last Resort',
+    this.email = 'lastresort@lare.de',
+    this.password = '',
+    this.tileType = TileType.admin,
+  });
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Column(
+      children: [
+        const SizedBox(height: 16.0),
+        ExpansionTile(
+          onExpansionChanged: (value) {
+            if (tileType == TileType.team) {
+              context.read<LoginCubit>().teamNameChanged(teamName);
+            } else {
+              context.read<LoginCubit>().emailChanged(email);
+            }
+          },
+          leading: const Icon(FontAwesomeIcons.users),
+          tilePadding: const EdgeInsets.all(8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          title: Center(
+            child: Text(
+              teamName,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          children: [
+            Form(
+              child: Column(
                 children: [
-                  const SizedBox(height: 16.0),
-                    ExpansionTile(
-                      onExpansionChanged: (value) => context.read<LoginCubit>().teamNameChanged(teamName),
-                      leading: const Icon(FontAwesomeIcons.users),
-                      backgroundColor: const Color.fromARGB(255, 211, 210, 210),
-                      collapsedBackgroundColor: const Color.fromARGB(255, 211, 210, 210),
-                      tilePadding: const EdgeInsets.all(8.0),
-                      shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      collapsedShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    title: Center(
-                      child: Text(
-                      teamName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      ),
-                    ),
-                    children: [
-                      Form(
-                      child: Column(
-                        children: [
-                        NameInput(),
-                        const SizedBox(height: 16.0),
-                        SignUpButton(),
-                        ],
-                      ),
-                      )
-                    ],
-                    ),
-                    
+                  if (tileType == TileType.team)
+                    const NameInput()
+                  else
+                    const PasswordInput(),
                 ],
-              );
-  }
-}
-
-class AdminTile extends StatelessWidget{
- 
-  @override
-  Widget build(BuildContext context){
-    return Column(
-                children: [
-                  const SizedBox(height: 16.0),
-                    ExpansionTile(
-                      onExpansionChanged: (value) => context.read<LoginCubit>().emailChanged('lastresort@lare.de'),
-                      leading: const Icon(FontAwesomeIcons.users),
-                      backgroundColor: const Color.fromARGB(255, 211, 210, 210),
-                      collapsedBackgroundColor: const Color.fromARGB(255, 211, 210, 210),
-                      tilePadding: const EdgeInsets.all(8.0),
-                      shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      collapsedShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    title: const Center(
-                      child: Text(
-                      'Admin',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      ),
-                    ),
-                    children: [
-                      Form(
-                      child: Column(
-                        children: [
-                        PasswordInput(),
-                        const SizedBox(height: 16.0),
-                        LoginButton(),
-                        ],
-                      ),
-                      )
-                    ],
-                    ),
-                    
-                ],
-              );
+              ),
+            )
+          ],
+        ),
+      ],
+    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:form_inputs/form_inputs.dart';
 import 'package:formz/formz.dart';
@@ -31,6 +32,10 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
+  void nameChanged(String value) {
+    emit(state.copyWith(name: value));
+  }
+
   void teamNameChanged(String value) {
     emit(state.copyWith(teamName: value));
   }
@@ -44,6 +49,13 @@ class LoginCubit extends Cubit<LoginState> {
         password: state.password.value,
       );
       emit(state.copyWith(status: FormzSubmissionStatus.success));
+      await (FirebaseFirestore.instance.collection('players').add({
+        'email': 'lastresort@lare.de',
+        'teamName': 'Last Resort',
+        'user': 'Admin',
+        'pressed': false,
+        'time': DateTime.now(),
+      }));
     } on LogInWithEmailAndPasswordFailure catch (e) {
       emit(
         state.copyWith(
@@ -56,7 +68,7 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-Future<void> signUpFormSubmitted() async {
+  Future<void> signUpFormSubmitted() async {
     if (!state.isValid) return;
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
@@ -65,6 +77,13 @@ Future<void> signUpFormSubmitted() async {
         password: state.password.value,
       );
       emit(state.copyWith(status: FormzSubmissionStatus.success));
+      await (FirebaseFirestore.instance.collection('players').add({
+        'email': state.email.value,
+        'teamName': state.teamName,
+        'user': state.name,
+        'pressed': false,
+        'time': DateTime.now(),
+      }));
     } on SignUpWithEmailAndPasswordFailure catch (e) {
       emit(
         state.copyWith(
@@ -77,6 +96,3 @@ Future<void> signUpFormSubmitted() async {
     }
   }
 }
-
-
-

@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ButtonPage extends StatelessWidget {
+  ButtonPage({super.key});
+
   final CollectionReference buzzCollection =
       FirebaseFirestore.instance.collection('buzzes');
 
@@ -16,41 +18,49 @@ class ButtonPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-              ElevatedButton(
-                onPressed: () {
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(300, 300),
-                  shape: CircleBorder(),
-                  padding: EdgeInsets.all(24),
-                  backgroundColor: Colors.blueGrey
-            
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border.all(
+                  color: Theme.of(context).primaryColor,
+                  width: 30,
                 ),
-                child:  ElevatedButton(
+              ),
+              child: ElevatedButton(
                 onPressed: () {
                   buzzCollection.add({
                     'time': DateTime.now(),
-                    'user': user.name ?? "Anonymous",
+                    'user': 'Admin',
                     'email': user.email,
+                    'teamName': 'Last Resort',
                   });
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(300, 300),
-                  shape: const CircleBorder(),
                   padding: const EdgeInsets.all(10),
-                  backgroundColor: Colors.red
+                  backgroundColor: Theme.of(context).primaryColor,
+                  shadowColor: Colors.black,
+                  elevation: 10,
                 ),
-                child: Text('Press me'),
+                child: Text('Press me',
+                    style: TextStyle(
+                        fontSize: 20,
+                        color: Theme.of(context)
+                            .unselectedWidgetColor
+                            .withOpacity(.5))),
               ),
-              ),
-              const SizedBox(height: 20,),
-            ElevatedButton(onPressed: () {
-                  buzzCollection.get().then((snapshot) {
-                    for (DocumentSnapshot doc in snapshot.docs) {
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+                onPressed: () {
+                  buzzCollection.get().then((QuerySnapshot querySnapshot) {
+                    for (var doc in querySnapshot.docs) {
                       doc.reference.delete();
                     }
                   });
-                }, child: Text('delete'),)
+                },
+                child: const Text('Delete all buzzes')),
           ],
         ),
       ),

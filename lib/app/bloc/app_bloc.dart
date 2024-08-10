@@ -29,17 +29,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   void _onUserChanged(_AppUserChanged event, Emitter<AppState> emit) {
     emit(
-      event.user.email == 'lastrestort@lare.de'
+      event.user.email == 'lastresort@lare.de'
           ? AppState.authenticated(event.user)
-          :
-      event.user.isNotEmpty
-          ? AppState.player(event.user)
-          : const AppState.unauthenticated(),
+          : event.user.isNotEmpty
+              ? AppState.player(event.user)
+              : const AppState.unauthenticated(),
     );
   }
 
   void _onLogoutRequested(AppLogoutRequested event, Emitter<AppState> emit) {
-    unawaited(_authenticationRepository.logOut());
+    if (event.user.email == 'lastresort@lare.de') {
+      unawaited(_authenticationRepository.logOut());
+    } else {
+      unawaited(_authenticationRepository.deleteAccount());
+    }
   }
 
   @override

@@ -25,9 +25,10 @@ class OverviewPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final buzz = buzzes[index].data() as Map<String, dynamic>;
             return ListTile(
-              title: Text(buzz['user']),
-              subtitle: Text(buzz['email']),
-              trailing: Text(buzz['time'].toDate().toString().substring(11,19)),
+              title: Text(buzz['teamName']),
+              subtitle: Text(buzz['user']),
+              trailing:
+                  Text(buzz['time'].toDate().toString().substring(11, 19)),
             );
           },
         );
