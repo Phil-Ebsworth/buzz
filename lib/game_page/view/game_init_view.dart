@@ -2,6 +2,7 @@ import 'package:buzz/game_page/bloc/game_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:buzz_repository/buzz_firestore.dart';
 
 class GameInitPage extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class GameInitPage extends StatefulWidget {
 class _GameInitPageState extends State<GameInitPage> {
   final _formKey = GlobalKey<FormState>();
   final _teamNameController = TextEditingController();
+  final store = BuzzFirestore(FirebaseFirestore.instance);
 
   @override
   void dispose() {
@@ -20,9 +22,11 @@ class _GameInitPageState extends State<GameInitPage> {
 
   void _submitTeam() {
     if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      FirebaseFirestore.instance.collection('teams').add({
-        'name': _teamNameController.text,
-      }).then((value) {
+      store
+          .addTeam(Team(
+        name: _teamNameController.text,
+      ))
+          .then((value) {
         _teamNameController.clear();
       });
     }
@@ -54,8 +58,7 @@ class _GameInitPageState extends State<GameInitPage> {
               ),
               SizedBox(height: 16.0),
               StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection('teams').snapshots(),
+                stream: store.teamsSnapshot(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final teams = snapshot.data!.docs;

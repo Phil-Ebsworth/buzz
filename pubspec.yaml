@@ -43,6 +43,8 @@ dependencies:
   equatable: ^2.0.5
   authentication_repository:
     path: packages/authentication_repository
+  buzz_repository:
+    path: packages/buzz_firestore
   flow_builder: ^0.0.9
   font_awesome_flutter: ^10.1.0
   form_inputs:
